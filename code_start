@@ -1,0 +1,23 @@
+from tkinter import *
+window = Tk()
+window.geometry("1600x1000")
+window.title("Z")
+window.attributes('-fullscreen', True)
+#фон
+bg= PhotoImage(file = 'фон земли.png')
+label = Label(window, image=bg)
+label.place(relx=.5, rely=.5, anchor='c')
+#кнопки
+button1 = Button(command=window.destroy, text = 'Выход', font=('skogenspelfont', 48))
+button1.place(relx=.5, rely=.8, anchor="c", width=350, height=75)
+button2 = Button(text = 'Настройки', font=('skogenspelfont', 48))
+button2.place(relx=.5, rely=.7, anchor="c", width=350, height=75)
+button3 = Button(text = 'Персонажи', font=('skogenspelfont', 48))
+button3.place(relx=.5, rely=.6, anchor="c", width=350, height=75)
+button4 = Button(command=lvl, text = 'Играть', font=('skogenspelfont', 48))
+button4.place(relx=.5, rely=.5, anchor="c", width=350, height=75)
+#название
+name = PhotoImage(file='название.png')
+label1 = Label(window, image=name, borderwidth=0)
+label1.place (relx=.5, rely=.1, anchor='c')
+window.mainloop()
