@@ -1,7 +1,74 @@
 from tkinter import *
+import ctypes
+
+ctypes.windll.shcore.SetProcessDpiAwareness(1) #сохранение размера окна для разных масштабов
+def forget_menu(): #очищение окна
+    for widget in window.winfo_chilыdren():
+        widget.destroy()
+
+def game(): #окно с выбором уровня игры
+    forget_menu()
+    window.geometry("1920x1200")
+    window.attributes('-fullscreen', True)
+
+    bg = PhotoImage(file='фон земли.png')
+    label = Label(window, image=bg)
+    label.place(relx=.5, rely=.5, anchor='c')
+
+    lvl = PhotoImage(file='уровни.png')
+    label = Label(window, image=lvl, borderwidth=0)
+    label.place(relx=.5, rely=.2, anchor='c')
+
+    lvl1 = Button(text='1', font=('skogenspelfont', 70))
+    lvl1.place(relx=.2, rely=.6, anchor="c", width=200, height=200)
+
+    lvl2 = Button(text='2', font=('skogenspelfont', 70))
+    lvl2.place(relx=.5, rely=.6, anchor="c", width=200, height=200)
+
+    lvl3 = Button(text='3', font=('skogenspelfont', 70))
+    lvl3.place(relx=.8, rely=.6, anchor="c", width=200, height=200)
+
+    menu = Button(command=cheta, text='Вернуться', font=('skogenspelfont', 55))
+    menu.place(relx=.71, rely=.9, anchor="c", width=550, height=100)
+    window.mainloop()
+
+def sit(): #меню настроек
+    window.geometry("1920x1200")
+    window.title("DIGGER")
+    window.attributes('-fullscreen', True)
+    bg = PhotoImage(file='Меню управления.png')
+    label = Label(window, image=bg)
+    label.place(relx=.5, rely=.5, anchor='c')
+
+    gl_menu = Button(command=cheta, text='Вернуться', font=('skogenspelfont', 55), fg='#3e1c1c')
+    gl_menu.place(relx=.70, rely=.855, anchor="c", width=550, height=100)
+    window.mainloop()
+
+def cheta(): #вызов функций, выход в главное меню из меню выбора уровней
+    forget_menu()
+    menu_on_screen()
+
+def menu_on_screen(): #главное меню
+    bg = PhotoImage(file='фон земли.png')
+    label = Label(window, image=bg)
+    label.place(relx=.5, rely=.5, anchor='c')
+    button1 = Button(command=window.destroy, text='Выход', font=('skogenspelfont', 48))
+    button1.place(relx=.5, rely=.85, anchor="c", width=425, height=75)
+    button2 = Button(command=sit, text='Управление', font=('skogenspelfont', 48))
+    button2.place(relx=.5, rely=.75, anchor="c", width=425, height=75)
+    button3 = Button(text='Персонажи', font=('skogenspelfont', 48))
+    button3.place(relx=.5, rely=.65, anchor="c", width=425, height=75)
+    button4 = Button(command=game, text='Играть', font=('skogenspelfont', 48))
+    button4.place(relx=.5, rely=.55, anchor="c", width=425, height=75)
+    # название
+    name = PhotoImage(file='Название.png')
+    label1 = Label(window, image=name, borderwidth=0)
+    label1.place(relx=.5, rely=.2, anchor='c')
+    window.mainloop()
+
 window = Tk()
-window.geometry("1600x1000")
-window.title("Z")
+window.geometry("1920x1200")
+window.title("DIGGER")
 window.attributes('-fullscreen', True)
 #фон
 bg= PhotoImage(file = 'фон земли.png')
@@ -9,15 +76,16 @@ label = Label(window, image=bg)
 label.place(relx=.5, rely=.5, anchor='c')
 #кнопки
 button1 = Button(command=window.destroy, text = 'Выход', font=('skogenspelfont', 48))
-button1.place(relx=.5, rely=.8, anchor="c", width=350, height=75)
-button2 = Button(text = 'Настройки', font=('skogenspelfont', 48))
-button2.place(relx=.5, rely=.7, anchor="c", width=350, height=75)
+button1.place(relx=.5, rely=.85, anchor="c", width=425, height=75)
+button2 = Button(command=sit, text = 'Управление', font=('skogenspelfont', 48))
+button2.place(relx=.5, rely=.75, anchor="c", width=425, height=75)
 button3 = Button(text = 'Персонажи', font=('skogenspelfont', 48))
-button3.place(relx=.5, rely=.6, anchor="c", width=350, height=75)
-button4 = Button(command=lvl, text = 'Играть', font=('skogenspelfont', 48))
-button4.place(relx=.5, rely=.5, anchor="c", width=350, height=75)
+button3.place(relx=.5, rely=.65, anchor="c", width=425, height=75)
+button4 = Button(command=game,text = 'Играть', font=('skogenspelfont', 48))
+button4.place(relx=.5, rely=.55, anchor="c", width=425, height=75)
 #название
-name = PhotoImage(file='название.png')
+name = PhotoImage(file='Название.png')
 label1 = Label(window, image=name, borderwidth=0)
-label1.place (relx=.5, rely=.1, anchor='c')
+label1.place (relx=.5, rely=.2, anchor='c')
+
 window.mainloop()
