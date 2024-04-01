@@ -12,9 +12,9 @@ def forget_menu(): #очищение окна
 def cheta(): #вызов функций, выход в главное меню из меню выбора уровней
     forget_menu()
     menu_on_screen()
+
 def lavel1():
     global x, y, monster_x, monster_y, level, can_shoot, lives, traktor, monsters, bullet, crystals_collected, current_monster
-    # Представление уровня
     level = [
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '1', '1', '0'],
@@ -52,34 +52,19 @@ def lavel1():
     window.attributes('-fullscreen', True)
     c1 = Canvas(window, width=1900, height=1200)
     c1.pack(fill="both", expand=True)
-
-    # Загрузка изображений
-    w, h = window.winfo_screenwidth(), window.winfo_screenheight()
-
-    bg_image1 = Image.open('gg/земля фон.png')
-    bg_image1 = bg_image1.resize((w, h))
-    bg_image = ImageTk.PhotoImage(bg_image1)
-
-    traktor1 = Image.open('gg/трактор.png')
-    traktor1 = traktor1.resize((round(w * 0.0396), round(h * 0.0633)))
-    image_tk = ImageTk.PhotoImage(traktor1)
-
-    monster_image1 = Image.open('gg/монстр1.png')
-    monster_image1 = monster_image1.resize((round(w * 0.0396), round(h * 0.0633)))
-    monster_image_tk = ImageTk.PhotoImage(monster_image1)
-
-    cristal1 = Image.open('gg/cristal.png')
-    cristal1 = cristal1.resize((round(w * 0.0396), round(h * 0.0633)))
-    cristal_tk = ImageTk.PhotoImage(cristal1)
-
-    heart_image1 = Image.open('gg/сердце.png')
-    heart_image1 = heart_image1.resize((round(w * 0.0396), round(h * 0.0633)))
-    heart_image_tk = ImageTk.PhotoImage(heart_image1)
-
+    bg_image = PhotoImage(file='gg/земля фон.png')
     c1.create_image(0, 0, image=bg_image, anchor='nw')
+    image = Image.open('gg/трактор.png')
+    image_tk = ImageTk.PhotoImage(image)
     c1.image = image_tk
+    monster_image = Image.open('gg/монстр1.png')
+    monster_image_tk = ImageTk.PhotoImage(monster_image)
     c1.monster_image = monster_image_tk
+    cristal = Image.open('gg/cristal.png')
+    cristal_tk = ImageTk.PhotoImage(cristal)
     c1.cristal = cristal_tk
+    heart_image = Image.open('gg/сердце.png')
+    heart_image_tk = ImageTk.PhotoImage(heart_image)
     c1.heart_image = heart_image_tk
 
     traktor = None
@@ -89,33 +74,31 @@ def lavel1():
 
     def draw_level():
         global level, traktor, monsters, bullet
-        if c1.winfo_exists():  # Проверяем существование canvas
-            c1.delete('obstacle')
-            for i in range(len(level)):
-                for j in range(len(level[i])):
-                    if level[i][j] == '1':
-                        c1.create_rectangle(j * 100, i * 100, j * 100 + 100, i * 100 + 100, fill='black',
-                                            tags='obstacle')
-                    elif level[i][j] == '2':
-                        c1.create_image(j * 100, i * 100, image=cristal_tk, anchor=NW, tags='obstacle')
+        c1.delete('obstacle')
+        for i in range(len(level)):
+            for j in range(len(level[i])):
+                if level[i][j] == '1':
+                    c1.create_rectangle(j * 100, i * 100, j * 100 + 100, i * 100 + 100, fill='black', tags='obstacle')
+                elif level[i][j] == '2':
+                    c1.create_image(j * 100, i * 100, image=cristal_tk, anchor=NW, tags='obstacle')
 
-            # Отрисовка оставшихся жизней (сердец)
-            heart_row = 5  # Начальная строка для отрисовки сердец
-            heart_col = 18  # Столбец для отрисовки сердец
-            for i in range(lives):
-                c1.create_image(heart_col * 100, heart_row * 100, image=heart_image_tk, anchor=W, tags='obstacle')
-                heart_row -= 1
+        # Отрисовка оставшихся жизней (сердец)
+        heart_row = 5  # Начальная строка для отрисовки сердец
+        heart_col = 18  # Столбец для отрисовки сердец
+        for i in range(lives):
+            c1.create_image(heart_col * 100, heart_row * 100, image=heart_image_tk, anchor=W, tags='obstacle')
+            heart_row -= 1
 
-            if traktor is not None:
-                c1.delete(traktor)
-            traktor = c1.create_image(x * 100, y * 100, image=image_tk, anchor=NW, tags=("traktor"))
-            for i in range(4):
-                if monsters[i] is not None:
-                    c1.delete(monsters[i])
-                monsters[i] = c1.create_image(monster_x[i] * 100, monster_y[i] * 100, image=monster_image_tk, anchor=NW,
-                                              tags=("monster"))
-            if bullet is not None:
-                c1.delete(bullet)
+        if traktor is not None:
+            c1.delete(traktor)
+        traktor = c1.create_image(x * 100, y * 100, image=image_tk, anchor=NW, tags=("traktor"))
+        for i in range(4):
+            if monsters[i] is not None:
+                c1.delete(monsters[i])
+            monsters[i] = c1.create_image(monster_x[i] * 100, monster_y[i] * 100, image=monster_image_tk, anchor=NW,
+                                          tags=("monster"))
+        if bullet is not None:
+            c1.delete(bullet)
 
     def find_shortest_path(start_x, start_y, target_x, target_y):
         queue = [(start_x, start_y, [])]  # Очередь с начальной координатой и пустым путем
@@ -173,7 +156,6 @@ def lavel1():
                     x, y = initial_x, initial_y
                     monster_x = initial_monster_x.copy()
                     monster_y = initial_monster_y.copy()
-
         draw_level()
         delay = 250  # Задержка 150 миллисекунд для всех монстров
         window.after(delay, move_monster, monster_index)  # Вызываем move_monster() с задержкой
@@ -239,7 +221,6 @@ def lavel1():
             bullet = None
 
     def shoot(event):
-        global can_shoot
         global bullet, x, y, dx, dy, can_shoot
         if event.keysym == 'Return' and can_shoot:
             can_shoot = False  # Блокируем выстрел
@@ -297,7 +278,7 @@ def lavel(): #окно с выбором уровня игры
     lvl3 = Button(image=lvl33)
     lvl3.place(relx=.75, rely=.6, anchor="c")
 
-    men1 = Image.open('gg/вернуться.png')
+    men1 = Image.open('gg\вернуться.png')
     men1 = men1.resize((round(w * .2443), round(h * .0917)))
     men = ImageTk.PhotoImage(men1)
     gl_menu = Button(command=cheta, image=(men))
@@ -341,7 +322,19 @@ def pers(): #меню управления
 
 
 
+def toggle_music(): #функция для включения/выключения музыки
+    global music_playing, music_stream, button4
+    if music_playing:
+        winsound.PlaySound(None, winsound.SND_PURGE)
+        button4.config(image=sound_off)
+        music_playing = False
+    else:
+        music_stream = winsound.PlaySound("gg/Garoad.wav", winsound.SND_ASYNC | winsound.SND_LOOP)
+        button4.config(image=sound_on)
+        music_playing = True
+
 def menu_on_screen(): #главное меню
+    global button4
     bg1 = Image.open('gg/фон меню.png')
     bg1 = bg1.resize((w, h))
     bg = ImageTk.PhotoImage(bg1)
@@ -354,7 +347,8 @@ def menu_on_screen(): #главное меню
     button2.place(relx=.5, rely=.75, anchor="c")
     button3 = Button(command=pers,image=per)
     button3.place(relx=.5, rely=.65, anchor="c")
-    button4 = Button()
+    button4 = Button(command=toggle_music, image=sound_off)
+    button4.place(relx=.85, rely=.85, anchor="c")
     button5 = Button(command=lavel, image=pl)
     button5.place(relx=.5, rely=.55, anchor="c")
 
@@ -399,14 +393,8 @@ per1 = Image.open('gg/выбор персонажа.png')
 per1 = per1.resize((round(w * .2479), round(h * .0633)))
 per = ImageTk.PhotoImage(per1)
 
-button1 = Button(command=window.destroy, image=ex)
-button1.place(relx=.5, rely=.85, anchor="c")
-button2 = Button(command=sit, image=yp)
-button2.place(relx=.5, rely=.75, anchor="c")
-button3 = Button(command=pers, image=per)
-button3.place(relx=.5, rely=.65, anchor="c")
-button4 = Button()
-button5 = Button(command=lavel, image=pl)
-button5.place(relx=.5, rely=.55, anchor="c")
+music_playing = False
+music_stream = None
+button4 = None  # Объявляем button4 как глобальную переменную
 
-window.mainloop()
+menu_on_screen()
