@@ -13,9 +13,23 @@ def cheta(): #вызов функций, выход в главное меню �
     forget_menu()
     menu_on_screen()
 
+from tkinter import *
+import ctypes
+from PIL import Image, ImageTk
+import winsound
+
+ctypes.windll.shcore.SetProcessDpiAwareness(1) #сохранение размера окна для разных масштабов
+
+def forget_menu(): #очищение окна
+    for widget in window.winfo_children():
+        widget.destroy()
+
+def cheta(): #вызов функций, выход в главное меню из меню выбора уровней
+    forget_menu()
+    menu_on_screen()
+
 def lavel1():
-    global x, y, monster_x, monster_y, level, can_shoot, lives, traktor, monsters, bullet, crystals_collected, current_monster
-    level = [
+    level_matrix = [
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '1', '1', '0'],
         ['0', '0', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'],
@@ -29,7 +43,27 @@ def lavel1():
         ['0', '0', '0', '0', '2', '0', '0', '0', '2', '2', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0']
     ]
+    start_game(level_matrix)
 
+def lavel2():
+    level_matrix = [
+        ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
+        ['0', '0', '0', '0', '0', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '0'],
+        ['0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0'],
+        ['0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0'],
+        ['0', '0', '2', '2', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0'],
+        ['0', '0', '2', '2', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '3'],
+        ['0', '0', '0', '0', '0', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '0', '0', '0', '0'],
+        ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
+        ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
+        ['0', '0', '0', '0', '2', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '2', '0', '0', '0'],
+        ['0', '0', '0', '0', '2', '0', '0', '0', '2', '2', '0', '0', '0', '0', '0', '2', '0', '0', '0'],
+        ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0']
+    ]
+    start_game(level_matrix)
+def start_game(level_matrix):
+    global x, y, monster_x, monster_y, level, can_shoot, lives, traktor, monsters, bullet, crystals_collected, current_monster
+    level = level_matrix
     # Начальное положение персонажей
     initial_x, initial_y = 10, 5
     initial_monster_x = [15, 15, 16, 17]
@@ -74,7 +108,8 @@ def lavel1():
 
     def draw_level():
         global level, traktor, monsters, bullet
-        c1.delete('obstacle')
+        if c1.winfo_exists():  # Проверяем, существует ли Canvas
+            c1.delete('obstacle')
         for i in range(len(level)):
             for j in range(len(level[i])):
                 if level[i][j] == '1':
@@ -83,8 +118,8 @@ def lavel1():
                     c1.create_image(j * 100, i * 100, image=cristal_tk, anchor=NW, tags='obstacle')
 
         # Отрисовка оставшихся жизней (сердец)
-        heart_row = 5  # Начальная строка для отрисовки сердец
-        heart_col = 18  # Столбец для отрисовки сердец
+        heart_row = 5
+        heart_col = 18
         for i in range(lives):
             c1.create_image(heart_col * 100, heart_row * 100, image=heart_image_tk, anchor=W, tags='obstacle')
             heart_row -= 1
@@ -143,7 +178,8 @@ def lavel1():
             if next_x == x and next_y == y:
                 lives -= 1  # Уменьшаем количество жизней
                 if lives == 0:  # Если жизней не осталось
-                    lavel()  # Завершаем игру
+                    # Завершаем игру или вызываем другую функцию для завершения игры
+                    pass
                 else:
                     # Удаляем одно изображение сердца из матрицы
                     for i in range(len(level)):
@@ -156,9 +192,11 @@ def lavel1():
                     x, y = initial_x, initial_y
                     monster_x = initial_monster_x.copy()
                     monster_y = initial_monster_y.copy()
-        draw_level()
-        delay = 250  # Задержка 150 миллисекунд для всех монстров
-        window.after(delay, move_monster, monster_index)  # Вызываем move_monster() с задержкой
+
+        if c1.winfo_exists():  # Проверяем, существует ли Canvas
+            draw_level()
+            delay = 250  # Задержка 250 миллисекунд для всех монстров
+            window.after(delay, move_monster, monster_index)  # Вызываем move_monster() с задержкой
 
     def move(event):
         global x, y, crystals_collected, dx, dy
@@ -249,6 +287,156 @@ def lavel1():
 
     window.after(1000, spawn_monsters)
     window.mainloop()
+def lavel(): #окно с выбором уровня игры
+    forget_menu()
+    window.geometry("1920x1200")
+    window.attributes('-fullscreen', True)
+
+    bg1 = Image.open('gg/фон уровни.png')
+    bg1 = bg1.resize((w, h))
+    bg = ImageTk.PhotoImage(bg1)
+    label = Label(window, image=bg)
+    label.place(relx=.5, rely=.5, anchor='c')
+
+    lvl111 = Image.open('gg/l1.png')
+    lvl111 = lvl111.resize((round(w*.0786), round(h*.1258)))
+    lvl11 = ImageTk.PhotoImage(lvl111)
+    lvl1 = Button(command=lavel1, image=lvl11)
+    lvl1.place(relx=.25, rely=.6, anchor="c")
+
+    lvl222 = Image.open('gg/l2.png')
+    lvl222 = lvl222.resize((round(w*.0786), round(h*.1258)))
+    lvl22 = ImageTk.PhotoImage(lvl222)
+    lvl2 = Button(command=lavel2, image=lvl22)
+    lvl2.place(relx=.5, rely=.6, anchor="c")
+
+    lvl333 = Image.open('gg/l3.png')
+    lvl333 = lvl333.resize((round(w*.0786), round(h*.1258)))
+    lvl33 = ImageTk.PhotoImage(lvl333)
+    lvl3 = Button(image=lvl33)
+    lvl3.place(relx=.75, rely=.6, anchor="c")
+
+    men1 = Image.open('gg\вернуться.png')
+    men1 = men1.resize((round(w * .2443), round(h * .0917)))
+    men = ImageTk.PhotoImage(men1)
+    gl_menu = Button(command=cheta, image=(men))
+    gl_menu.place(relx=.67, rely=.83, anchor="c")
+    window.mainloop()
+
+def sit(): #меню управления
+    window.geometry("1920x1200")
+    window.title("DIGGER")
+    window.attributes('-fullscreen', True)
+    bg1 = Image.open('gg/управление фон.png')
+    bg1 = bg1.resize((w, h))
+    bg = ImageTk.PhotoImage(bg1)
+    label = Label(window, image=bg)
+    label.place(relx=.5, rely=.5, anchor='c')
+
+    men1 = Image.open('gg/вернуться.png')
+    men1 = men1.resize((round(w*.2443),round(h*.0917)))
+    men = ImageTk.PhotoImage(men1)
+    gl_menu = Button(command=cheta, image=(men))
+    gl_menu.place(relx=.70, rely=.83, anchor="c")
+    window.mainloop()
+
+def pers(): #меню управления
+    forget_menu()
+    window.geometry("1920x1200")
+    window.attributes('-fullscreen', True)
+
+    bg1 = Image.open('gg/персонажи фон.png')
+    bg1 = bg1.resize((w, h))
+    bg = ImageTk.PhotoImage(bg1)
+    label = Label(window, image=bg)
+    label.place(relx=.5, rely=.5, anchor='c')
+
+    men1 = Image.open('gg/вернуться.png')
+    men1 = men1.resize((round(w * .2443), round(h * .0917)))
+    men = ImageTk.PhotoImage(men1)
+    gl_menu = Button(command=cheta, image=(men))
+    gl_menu.place(relx=.7, rely=.83, anchor="c")
+    window.mainloop()
+
+
+
+def toggle_music(): #функция для включения/выключения музыки
+    global music_playing, music_stream, button4
+    if music_playing:
+        winsound.PlaySound(None, winsound.SND_PURGE)
+        button4.config(image=sound_off)
+        music_playing = False
+    else:
+        music_stream = winsound.PlaySound("gg/Garoad.wav", winsound.SND_ASYNC | winsound.SND_LOOP)
+        button4.config(image=sound_on)
+        music_playing = True
+
+def menu_on_screen(): #главное меню
+    global button4
+    bg1 = Image.open('gg/фон меню.png')
+    bg1 = bg1.resize((w, h))
+    bg = ImageTk.PhotoImage(bg1)
+    label = Label(window, image=bg)
+    label.place(relx=.5, rely=.5, anchor='c')
+
+    button1 = Button(command=window.destroy, image=ex)
+    button1.place(relx=.5, rely=.85, anchor="c")
+    button2 = Button(command=sit, image=yp)
+    button2.place(relx=.5, rely=.75, anchor="c")
+    button3 = Button(command=pers,image=per)
+    button3.place(relx=.5, rely=.65, anchor="c")
+    button4 = Button(command=toggle_music, image=sound_off)
+    button4.place(relx=.85, rely=.85, anchor="c")
+    button5 = Button(command=lavel, image=pl)
+    button5.place(relx=.5, rely=.55, anchor="c")
+
+    window.mainloop()
+
+
+window = Tk()
+
+w = window.winfo_screenwidth()
+h = window.winfo_screenheight()
+
+window.geometry("1920x1200")
+window.title("DIGGER")
+window.attributes('-fullscreen', True)
+
+#фон
+bg1 = Image.open('gg\фон меню.png')
+bg1 = bg1.resize((w, h))
+bg = ImageTk.PhotoImage(bg1)
+label = Label(window, image=bg)
+label.place(relx=.5, rely=.5, anchor='c')
+
+#музыка
+sound_on1 = Image.open ('gg/song_on.png')
+sound_on1 = sound_on1.resize((round(w * .0396), round(h * .0633)))
+sound_on = ImageTk.PhotoImage(sound_on1)
+sound_off1 = Image.open ('gg/song_off.png')
+sound_off1 = sound_off1.resize((round(w * .0396), round(h * .0633)))
+sound_off = ImageTk.PhotoImage(sound_off1)
+
+#кнопки
+pl1 = Image.open('gg/Играть.png')
+pl1 = pl1.resize((round(w * .2479), round(h * .0633)))
+pl = ImageTk.PhotoImage(pl1)
+ex1 = Image.open('gg/выход.png')
+ex1 = ex1.resize((round(w * .2479), round(h * .0633)))
+ex = ImageTk.PhotoImage(ex1)
+yp1 = Image.open('gg/управление.png')
+yp1 = yp1.resize((round(w * .2479), round(h * .0633)))
+yp = ImageTk.PhotoImage(yp1)
+per1 = Image.open('gg/выбор персонажа.png')
+per1 = per1.resize((round(w * .2479), round(h * .0633)))
+per = ImageTk.PhotoImage(per1)
+
+music_playing = False
+music_stream = None
+button4 = None  # Объявляем button4 как глобальную переменную
+
+menu_on_screen()
+
 def lavel(): #окно с выбором уровня игры
     forget_menu()
     window.geometry("1920x1200")
