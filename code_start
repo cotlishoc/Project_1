@@ -61,32 +61,35 @@ def start_game(level_matrix):
 
     def draw_level():
         global level, traktor, monsters, bullet
-        if c1.winfo_exists():  # Проверяем, существует ли Canvas
+        if window.winfo_exists() and c1.winfo_exists():  # Проверяем, существуют ли окно и Canvas
             c1.delete('obstacle')
-        for i in range(len(level)):
-            for j in range(len(level[i])):
-                if level[i][j] == '1':
-                    c1.create_rectangle(j * 100, i * 100, j * 100 + 100, i * 100 + 100, fill='black', tags='obstacle')
-                elif level[i][j] == '2':
-                    c1.create_image(j * 100, i * 100, image=cristal_tk, anchor=NW, tags='obstacle')
+            for i in range(len(level)):
+                for j in range(len(level[i])):
+                    if level[i][j] == '1':
+                        c1.create_rectangle(j * 100, i * 100, j * 100 + 100, i * 100 + 100, fill='black',
+                                            tags='obstacle')
+                    elif level[i][j] == '2':
+                        c1.create_image(j * 100, i * 100, image=cristal_tk, anchor=NW, tags='obstacle')
 
-        # Отрисовка оставшихся жизней (сердец)
-        heart_row = 5
-        heart_col = 18
-        for i in range(lives):
-            c1.create_image(heart_col * 100, heart_row * 100, image=heart_image_tk, anchor=W, tags='obstacle')
-            heart_row -= 1
+            # Отрисовка оставшихся жизней (сердец)
+            heart_row = 5
+            heart_col = 18
+            for i in range(lives):
+                c1.create_image(heart_col * 100, heart_row * 100, image=heart_image_tk, anchor=W, tags='obstacle')
+                heart_row -= 1
 
-        if traktor is not None:
-            c1.delete(traktor)
-        traktor = c1.create_image(x * 100, y * 100, image=image_tk, anchor=NW, tags=("traktor"))
-        for i in range(4):
-            if monsters[i] is not None:
-                c1.delete(monsters[i])
-            monsters[i] = c1.create_image(monster_x[i] * 100, monster_y[i] * 100, image=monster_image_tk, anchor=NW,
-                                          tags=("monster"))
-        if bullet is not None:
-            c1.delete(bullet)
+            if traktor is not None:
+                c1.delete(traktor)
+            traktor = c1.create_image(x * 100, y * 100, image=image_tk, anchor=NW, tags=("traktor"))
+            for i in range(4):
+                if monsters[i] is not None:
+                    c1.delete(monsters[i])
+                monsters[i] = c1.create_image(monster_x[i] * 100, monster_y[i] * 100, image=monster_image_tk, anchor=NW,
+                                              tags=("monster"))
+            if bullet is not None:
+                c1.delete(bullet)
+        else:
+            return  # Выходим из функции, если окно или Canvas закрыты
 
     def find_shortest_path(start_x, start_y, target_x, target_y):
         queue = [(start_x, start_y, [])]  # Очередь с начальной координатой и пустым путем
@@ -137,12 +140,21 @@ def start_game(level_matrix):
                     x, y = initial_x, initial_y
                     monster_x = initial_monster_x.copy()
                     monster_y = initial_monster_y.copy()
-                    draw_level()
+                    try:
+                        if window.winfo_exists():  # Проверяем, существует ли окно
+                            draw_level()
+                    except (TclError, AttributeError):
+                        # Обрабатываем исключения, если окно было закрыто
+                        return
 
-        if c1.winfo_exists():  # Проверяем, существует ли Canvas
-            draw_level()
-            delay = 250  # Задержка 250 миллисекунд для всех монстров
-            window.after(delay, move_monster, monster_index)  # Вызываем move_monster() с задержкой
+        try:
+            if window.winfo_exists():  # Проверяем, существует ли окно
+                draw_level()
+                delay = 250  # Задержка 250 миллисекунд для всех монстров
+                window.after(delay, move_monster, monster_index)  # Вызываем move_monster() с задержкой
+        except (TclError, AttributeError):
+            # Обрабатываем исключения, если окно было закрыто
+            return
 
     def move(event):
         global x, y, crystals_collected, dx, dy
@@ -223,12 +235,13 @@ def start_game(level_matrix):
 
     def spawn_monsters():
         global current_monster
-        if not window.winfo_exists():
-            return
-        move_monster(current_monster)
-        current_monster += 1
-        if current_monster < 4:
-            window.after(600, spawn_monsters)
+        if window.winfo_exists():  # Проверяем, существует ли окно
+            move_monster(current_monster)
+            current_monster += 1
+            if current_monster < 4:
+                window.after(600, spawn_monsters)
+        else:
+            return  # Выходим из функции, если окно закрыто
 
     window.bind('<Right>', move)
     window.bind('<Left>', move)
