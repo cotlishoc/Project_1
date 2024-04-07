@@ -15,12 +15,12 @@ def cheta(): #вызов функций, выход в главное меню �
 
 
 def start_game(level_matrix):
-    global x, y, monster_x, monster_y, level, can_shoot, lives, traktor, monsters, bullet, crystals_collected, current_monster
+    global x, y, monster_x, monster_y, level, can_shoot, lives, traktor, monsters, bullet, crystals_collected, current_monster, after_ids
     level = level_matrix
     # Начальное положение персонажей
     initial_x, initial_y = 10, 5
     initial_monster_x = [15, 15, 16, 17]
-    initial_monster_y = [2, 1, 1, 1]
+    initial_monster_y = [1, 1, 1, 1]
 
     # Положение персонажей
     x, y = initial_x, initial_y
@@ -58,10 +58,11 @@ def start_game(level_matrix):
     monsters = [None, None, None, None]
     bullet = None
     can_shoot = True  # Флаг, указывающий, что можно стрелять
+    after_ids = []  # Список ID отложенных вызовов
 
     def draw_level():
         global level, traktor, monsters, bullet
-        if window.winfo_exists() and c1.winfo_exists():  # Проверяем, существуют ли окно и Canvas
+        try:
             c1.delete('obstacle')
             for i in range(len(level)):
                 for j in range(len(level[i])):
@@ -69,27 +70,27 @@ def start_game(level_matrix):
                         c1.create_rectangle(j * 100, i * 100, j * 100 + 100, i * 100 + 100, fill='black',
                                             tags='obstacle')
                     elif level[i][j] == '2':
-                        c1.create_image(j * 100, i * 100, image=cristal_tk, anchor=NW, tags='obstacle')
+                        c1.create_image(j * 100, i * 100, image=c1.cristal, anchor=NW, tags='obstacle')
 
             # Отрисовка оставшихся жизней (сердец)
             heart_row = 5
             heart_col = 18
             for i in range(lives):
-                c1.create_image(heart_col * 100, heart_row * 100, image=heart_image_tk, anchor=W, tags='obstacle')
+                c1.create_image(heart_col * 100, heart_row * 100, image=c1.heart_image, anchor=W, tags='obstacle')
                 heart_row -= 1
 
             if traktor is not None:
                 c1.delete(traktor)
-            traktor = c1.create_image(x * 100, y * 100, image=image_tk, anchor=NW, tags=("traktor"))
+            traktor = c1.create_image(x * 100, y * 100, image=c1.image, anchor=NW, tags=("traktor"))
             for i in range(4):
                 if monsters[i] is not None:
                     c1.delete(monsters[i])
-                monsters[i] = c1.create_image(monster_x[i] * 100, monster_y[i] * 100, image=monster_image_tk, anchor=NW,
+                monsters[i] = c1.create_image(monster_x[i] * 100, monster_y[i] * 100, image=c1.monster_image, anchor=NW,
                                               tags=("monster"))
             if bullet is not None:
                 c1.delete(bullet)
-        else:
-            return  # Выходим из функции, если окно или Canvas закрыты
+        except TclError:
+            pass  # Если окно было закрыто, просто выходим из функции
 
     def find_shortest_path(start_x, start_y, target_x, target_y):
         queue = [(start_x, start_y, [])]  # Очередь с начальной координатой и пустым путем
@@ -120,75 +121,66 @@ def start_game(level_matrix):
 
     def move_monster(monster_index):
         global monster_x, monster_y, x, y, lives
-
-        # Находим кратчайший путь от монстра до трактора
-        path = find_shortest_path(monster_x[monster_index], monster_y[monster_index], x, y)
-
-        if path:
-            # Делаем шаг по найденному пути
-            next_x, next_y = path[0]
-            monster_x[monster_index] = next_x
-            monster_y[monster_index] = next_y
-
-            # Проверяем соприкосновение монстра с трактором
-            if next_x == x and next_y == y:
-                lives -= 1  # Уменьшаем количество жизней
-                if lives == 0:  # Если жизней не осталось
-                    lavel()  # Вызываем функцию lavel(), чтобы выйти в меню выбора уровня
-                else:
-                    # Восстанавливаем начальные позиции персонажа и монстров
-                    x, y = initial_x, initial_y
-                    monster_x = initial_monster_x.copy()
-                    monster_y = initial_monster_y.copy()
-                    try:
-                        if window.winfo_exists():  # Проверяем, существует ли окно
-                            draw_level()
-                    except (TclError, AttributeError):
-                        # Обрабатываем исключения, если окно было закрыто
-                        return
-
         try:
-            if window.winfo_exists():  # Проверяем, существует ли окно
-                draw_level()
-                delay = 250  # Задержка 250 миллисекунд для всех монстров
-                window.after(delay, move_monster, monster_index)  # Вызываем move_monster() с задержкой
-        except (TclError, AttributeError):
-            # Обрабатываем исключения, если окно было закрыто
-            return
+            # Находим кратчайший путь от монстра до трактора
+            path = find_shortest_path(monster_x[monster_index], monster_y[monster_index], x, y)
+
+            if path:
+                # Делаем шаг по найденному пути
+                next_x, next_y = path[0]
+                monster_x[monster_index] = next_x
+                monster_y[monster_index] = next_y
+
+                # Проверяем соприкосновение монстра с трактором
+                if next_x == x and next_y == y:
+                    lives -= 1  # Уменьшаем количество жизней
+                    if lives == 0:  # Если жизней не осталось
+                        lavel()  # Вызываем функцию lavel(), чтобы выйти в меню выбора уровня
+                    else:
+                        # Восстанавливаем начальные позиции персонажа и монстров
+                        x, y = initial_x, initial_y
+                        monster_x = initial_monster_x.copy()
+                        monster_y = initial_monster_y.copy()
+                        draw_level()
+
+            delay = 250  # Задержка 250 миллисекунд для всех монстров
+            after_id = c1.after(delay, move_monster, monster_index)
+            after_ids.append(after_id)
+        except TclError:
+            pass  # Если окно было закрыто, просто выходим из функции
 
     def move(event):
         global x, y, crystals_collected, dx, dy
+        try:
+            if event.keysym == 'Right' and x < len(level[0]) - 2:
+                dx, dy = 1, 0
+            elif event.keysym == 'Left' and x > 1:
+                dx, dy = -1, 0
+            elif event.keysym == 'Up' and y > 1:
+                dx, dy = 0, -1
+            elif event.keysym == 'Down' and y < len(level) - 2:
+                dy, dx = 1, 0
+            else:
+                return
 
-        if not window.winfo_exists():
-            return
-
-        if event.keysym == 'Right' and x < len(level[0]) - 2:
-            dx, dy = 1, 0
-        elif event.keysym == 'Left' and x > 1:
-            dx, dy = -1, 0
-        elif event.keysym == 'Up' and y > 1:
-            dx, dy = 0, -1
-        elif event.keysym == 'Down' and y < len(level) - 2:
-            dy, dx = 1, 0
-        else:
-            return
-
-        # Копание
-        if level[y + dy][x + dx] == '0':
-            level[y + dy][x + dx] = '1'
-            x += dx
-            y += dy
-        elif level[y + dy][x + dx] == '1':
-            x += dx
-            y += dy
-        elif level[y + dy][x + dx] == '2':  # Если на пути кристалл
-            level[y + dy][x + dx] = '1'  # Удаляем кристалл
-            x += dx
-            y += dy
-            crystals_collected += 1  # Увеличиваем счетчик кристаллов
-            if crystals_collected >= 10:  # Если собрано 10 кристаллов
-                lavel()  # Закрываем окно
-        draw_level()
+            # Копание
+            if level[y + dy][x + dx] == '0':
+                level[y + dy][x + dx] = '1'
+                x += dx
+                y += dy
+            elif level[y + dy][x + dx] == '1':
+                x += dx
+                y += dy
+            elif level[y + dy][x + dx] == '2':  # Если на пути кристалл
+                level[y + dy][x + dx] = '1'  # Удаляем кристалл
+                x += dx
+                y += dy
+                crystals_collected += 1  # Увеличиваем счетчик кристаллов
+                if crystals_collected >= 10:  # Если собрано 10 кристаллов
+                    lavel()  # Закрываем окно
+            draw_level()
+        except TclError:
+            pass  # Если окно было закрыто, просто выходим из функции
 
     def draw_bullet(bullet_x, bullet_y):
         global bullet
@@ -198,34 +190,39 @@ def start_game(level_matrix):
                                 fill='red', tags='bullet')
 
     def move_bullet(bullet_x, bullet_y, dx, dy):
-        global bullet, monsters, level
-        if 0 <= bullet_x < len(level[0]) and 0 <= bullet_y < len(level) and level[bullet_y][bullet_x] == '1':
-            # Проверяем все монстров на пути пули
-            for i in range(4):
-                if monster_x[i] != -1 and monster_y[i] != -1:
-                    if bullet_x == monster_x[i] and bullet_y == monster_y[i]:
-                        level[bullet_y][bullet_x] = '1'
-                        monster_x[i], monster_y[i] = -1, -1
-                        draw_level()
-                        c1.delete('bullet')
-                        bullet = None
-                        return
+        global bullet, monsters, level, after_ids
+        try:
+            if 0 <= bullet_x < len(level[0]) and 0 <= bullet_y < len(level) and level[bullet_y][bullet_x] == '1':
+                # Проверяем все монстров на пути пули
+                for i in range(4):
+                    if monster_x[i] != -1 and monster_y[i] != -1:
+                        if bullet_x == monster_x[i] and bullet_y == monster_y[i]:
+                            level[bullet_y][bullet_x] = '1'
+                            monster_x[i], monster_y[i] = -1, -1
+                            draw_level()
+                            c1.delete('bullet')
+                            bullet = None
+                            return
 
-            draw_bullet(bullet_x, bullet_y)
-            bullet_x += dx
-            bullet_y += dy
-            window.after(50, move_bullet, bullet_x, bullet_y, dx, dy)
-        else:
-            c1.delete('bullet')
-            bullet = None
+                draw_bullet(bullet_x, bullet_y)
+                bullet_x += dx
+                bullet_y += dy
+                after_id = c1.after(50, move_bullet, bullet_x, bullet_y, dx, dy)
+                after_ids.append(after_id)
+            else:
+                c1.delete('bullet')
+                bullet = None
+        except TclError:
+            pass  # Если окно было закрыто, просто выходим из функции
 
     def shoot(event):
-        global bullet, x, y, dx, dy, can_shoot
+        global bullet, x, y, dx, dy, can_shoot, after_ids
         if event.keysym == 'Return' and can_shoot:
             can_shoot = False  # Блокируем выстрел
             draw_bullet(x, y)
             move_bullet(x + dx, y + dy, dx, dy)
-            window.after(5000, reset_shoot)  # Устанавливаем задержку выстрела 3000 миллисекунд
+            after_id = window.after(5000, reset_shoot)  # Устанавливаем задержку выстрела 5000 миллисекунд
+            after_ids.append(after_id)
 
     def reset_shoot():
         global can_shoot
@@ -234,14 +231,15 @@ def start_game(level_matrix):
     current_monster = 0
 
     def spawn_monsters():
-        global current_monster
-        if window.winfo_exists():  # Проверяем, существует ли окно
+        global current_monster, after_ids
+        try:
             move_monster(current_monster)
             current_monster += 1
             if current_monster < 4:
-                window.after(600, spawn_monsters)
-        else:
-            return  # Выходим из функции, если окно закрыто
+                after_id = window.after(600, spawn_monsters)
+                after_ids.append(after_id)
+        except TclError:
+            pass  # Если окно было закрыто, просто выходим из функции
 
     window.bind('<Right>', move)
     window.bind('<Left>', move)
@@ -249,7 +247,8 @@ def start_game(level_matrix):
     window.bind('<Down>', move)
     window.bind('<Return>', shoot)
 
-    window.after(1000, spawn_monsters)
+    after_id = window.after(1000, spawn_monsters)
+    after_ids.append(after_id)
     window.mainloop()
 def lavel1():
     level_matrix = [
@@ -267,6 +266,7 @@ def lavel1():
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0']
     ]
     start_game(level_matrix)
+    window.mainloop()
 
 def lavel2():
     level_matrix = [
@@ -275,8 +275,8 @@ def lavel2():
         ['0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0'],
         ['0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0'],
         ['0', '0', '2', '2', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0'],
-        ['0', '0', '2', '2', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '3'],
-        ['0', '0', '0', '0', '0', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '0', '0', '0', '0'],
+        ['0', '0', '2', '2', '0', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '0', '0', '0', '3'],
+        ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
         ['0', '0', '0', '0', '2', '0', '0', '0', '2', '0', '0', '0', '0', '0', '0', '2', '0', '0', '0'],
@@ -284,6 +284,7 @@ def lavel2():
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0']
     ]
     start_game(level_matrix)
+    window.mainloop()
 def lavel(): #окно с выбором уровня игры
     forget_menu()
     window.geometry("1920x1200")
