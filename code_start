@@ -15,7 +15,7 @@ def cheta(): #вызов функций, выход в главное меню �
 
 
 def start_game(level_matrix):
-    global x, y, monster_x, monster_y, level, can_shoot, lives, traktor, monsters, bullet, crystals_collected, current_monster, after_ids
+    global x, y, monster_x, monster_y, level, can_shoot, lives, traktor, monsters, bullet, crystals_collected, current_monster, after_ids, move_monsters_interval, c1
     level = level_matrix
     # Начальное положение персонажей
     initial_x, initial_y = 10, 5
@@ -35,6 +35,9 @@ def start_game(level_matrix):
 
     # Направление движения
     dx, dy = 0, 0
+
+    # Интервал для move_monsters()
+    move_monsters_interval = 250
 
     window.attributes('-fullscreen', True)
     c1 = Canvas(window, width=1900, height=1200)
@@ -92,63 +95,6 @@ def start_game(level_matrix):
         except TclError:
             pass  # Если окно было закрыто, просто выходим из функции
 
-    def find_shortest_path(start_x, start_y, target_x, target_y):
-        queue = [(start_x, start_y, [])]  # Очередь с начальной координатой и пустым путем
-        visited = set()  # Множество посещенных координат
-
-        while queue:
-            x, y, path = queue.pop(0)  # Извлекаем координаты и путь из очереди
-
-            # Если достигли цели, возвращаем путь
-            if x == target_x and y == target_y:
-                return path
-
-            # Пропускаем посещенные координаты и непроходимые ячейки
-            if (x, y) in visited or y < 0 or y >= len(level) or x < 0 or x >= len(level[0]) or level[y][x] != '1':
-                continue
-
-            visited.add((x, y))  # Добавляем координаты в множество посещенных
-
-            # Добавляем в очередь соседние проходимые ячейки с новым путем
-            for dx, dy in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
-                new_x, new_y = x + dx, y + dy
-                if 0 <= new_x < len(level[0]) and 0 <= new_y < len(level) and level[new_y][new_x] == '1':
-                    new_path = path + [(new_x, new_y)]
-                    queue.append((new_x, new_y, new_path))
-
-        # Если путь не найден, возвращаем None
-        return None
-
-    def move_monster(monster_index):
-        global monster_x, monster_y, x, y, lives
-        try:
-            # Находим кратчайший путь от монстра до трактора
-            path = find_shortest_path(monster_x[monster_index], monster_y[monster_index], x, y)
-
-            if path:
-                # Делаем шаг по найденному пути
-                next_x, next_y = path[0]
-                monster_x[monster_index] = next_x
-                monster_y[monster_index] = next_y
-
-                # Проверяем соприкосновение монстра с трактором
-                if next_x == x and next_y == y:
-                    lives -= 1  # Уменьшаем количество жизней
-                    if lives == 0:  # Если жизней не осталось
-                        lavel()  # Вызываем функцию lavel(), чтобы выйти в меню выбора уровня
-                    else:
-                        # Восстанавливаем начальные позиции персонажа и монстров
-                        x, y = initial_x, initial_y
-                        monster_x = initial_monster_x.copy()
-                        monster_y = initial_monster_y.copy()
-                        draw_level()
-
-            delay = 250  # Задержка 250 миллисекунд для всех монстров
-            after_id = c1.after(delay, move_monster, monster_index)
-            after_ids.append(after_id)
-        except TclError:
-            pass  # Если окно было закрыто, просто выходим из функции
-
     def move(event):
         global x, y, crystals_collected, dx, dy
         try:
@@ -184,7 +130,7 @@ def start_game(level_matrix):
 
     def draw_bullet(bullet_x, bullet_y):
         global bullet
-        if bullet is not None:
+        if bullet is not None and c1 is not None:
             c1.delete(bullet)
         bullet = c1.create_oval(bullet_x * 100 + 40, bullet_y * 100 + 40, bullet_x * 100 + 60, bullet_y * 100 + 60,
                                 fill='red', tags='bullet')
@@ -200,24 +146,27 @@ def start_game(level_matrix):
                             level[bullet_y][bullet_x] = '1'
                             monster_x[i], monster_y[i] = -1, -1
                             draw_level()
-                            c1.delete('bullet')
+                            if c1 is not None:
+                                c1.delete('bullet')
                             bullet = None
                             return
 
-                draw_bullet(bullet_x, bullet_y)
+                if c1 is not None:
+                    draw_bullet(bullet_x, bullet_y)
                 bullet_x += dx
                 bullet_y += dy
                 after_id = c1.after(50, move_bullet, bullet_x, bullet_y, dx, dy)
                 after_ids.append(after_id)
             else:
-                c1.delete('bullet')
+                if c1 is not None:
+                    c1.delete('bullet')
                 bullet = None
         except TclError:
             pass  # Если окно было закрыто, просто выходим из функции
 
     def shoot(event):
         global bullet, x, y, dx, dy, can_shoot, after_ids
-        if event.keysym == 'Return' and can_shoot:
+        if event.keysym == 'Return' and can_shoot and c1 is not None:
             can_shoot = False  # Блокируем выстрел
             draw_bullet(x, y)
             move_bullet(x + dx, y + dy, dx, dy)
@@ -241,14 +190,77 @@ def start_game(level_matrix):
         except TclError:
             pass  # Если окно было закрыто, просто выходим из функции
 
+    def move_monsters():
+        global monster_x, monster_y, x, y, lives, move_monsters_interval
+        try:
+            for i in range(4):
+                if monster_x[i] != -1 and monster_y[i] != -1:
+                    move_monster(i)  # Вызываем функцию move_monster() для каждого монстра
+                    draw_level()  # Обновляем положение монстров на экране
+            window.after(move_monsters_interval, move_monsters)  # Вызываем функцию через заданный интервал
+        except TclError:
+            pass  # Если окно было закрыто, просто выходим из функции
+
+    def move_monster(monster_index):
+        global monster_x, monster_y, x, y, lives
+        try:
+            # Находим кратчайший путь от монстра до трактора
+            path = find_shortest_path(monster_x[monster_index], monster_y[monster_index], x, y)
+
+            if path:
+                # Делаем шаг по найденному пути
+                next_x, next_y = path[0]
+                monster_x[monster_index] = next_x
+                monster_y[monster_index] = next_y
+
+                # Проверяем соприкосновение монстра с трактором
+                if next_x == x and next_y == y:
+                    lives -= 1  # Уменьшаем количество жизней
+                    if lives == 0:  # Если жизней не осталось
+                        lavel()  # Вызываем функцию lavel(), чтобы выйти в меню выбора уровня
+                    else:
+                        # Восстанавливаем начальные позиции персонажа и монстров
+                        x, y = initial_x, initial_y
+                        monster_x = initial_monster_x.copy()
+                        monster_y = initial_monster_y.copy()
+                        draw_level()
+        except TclError:
+            pass  # Если окно было закрыто, просто выходим из функции
+
+    def find_shortest_path(start_x, start_y, target_x, target_y):
+        queue = [(start_x, start_y, [])]  # Очередь с начальной координатой и пустым путем
+        visited = set()  # Множество посещенных координат
+
+        while queue:
+            x, y, path = queue.pop(0)  # Извлекаем координаты и путь из очереди
+
+            # Если достигли цели, возвращаем путь
+            if x == target_x and y == target_y:
+                return path
+
+            # Пропускаем посещенные координаты и непроходимые ячейки
+            if (x, y) in visited or y < 0 or y >= len(level) or x < 0 or x >= len(level[0]) or level[y][x] != '1':
+                continue
+
+            visited.add((x, y))  # Добавляем координаты в множество посещенных
+
+            # Добавляем в очередь соседние проходимые ячейки с новым путем
+            for dx, dy in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+                new_x, new_y = x + dx, y + dy
+                if 0 <= new_x < len(level[0]) and 0 <= new_y < len(level) and level[new_y][new_x] == '1':
+                    new_path = path + [(new_x, new_y)]
+                    queue.append((new_x, new_y, new_path))
+
+        # Если путь не найден, возвращаем None
+        return None
+
     window.bind('<Right>', move)
     window.bind('<Left>', move)
     window.bind('<Up>', move)
     window.bind('<Down>', move)
     window.bind('<Return>', shoot)
 
-    after_id = window.after(1000, spawn_monsters)
-    after_ids.append(after_id)
+    window.after(1000, move_monsters)
     window.mainloop()
 def lavel1():
     level_matrix = [
