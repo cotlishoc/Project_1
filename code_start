@@ -380,6 +380,23 @@ def pers(): #меню управления
     label = Label(window, image=bg)
     label.place(relx=.5, rely=.5, anchor='c')
 
+    pers1 = Image.open('Button/Pers1.png')
+    pers1 = pers1.resize((round(w * .1563), round(h * .25)))
+    pers1tr = ImageTk.PhotoImage(pers1)
+    pers2 = Image.open('Button/Pers2.png')
+    pers2 = pers2.resize((round(w * .1563), round(h * .25)))
+    pers2m = ImageTk.PhotoImage(pers2)
+    pers3 = Image.open('Button/Pers3.png')
+    pers3 = pers3.resize((round(w * .1563), round(h * .25)))
+    pers3w = ImageTk.PhotoImage(pers3)
+
+    pers1_But = Button(image=pers1tr)
+    pers1_But.place (relx=.3, rely=.6, anchor="c")
+    pers2_But = Button(image=pers2m)
+    pers2_But.place(relx=.5, rely=.6, anchor="c")
+    pers3_But = Button(image=pers3w)
+    pers3_But.place(relx=.7, rely=.6, anchor="c")
+
     men1 = Image.open('gg/вернуться.png')
     men1 = men1.resize((round(w * .2443), round(h * .0917)))
     men = ImageTk.PhotoImage(men1)
