@@ -13,8 +13,18 @@ def cheta(): #вызов функций, выход в главное меню �
     forget_menu()
     menu_on_screen()
 
+selected_char_button = None
 
-def start_game(level_matrix):
+global pers1_But, pers2_But, pers3_But
+pers1_But = None
+pers2_But = None
+pers3_But = None
+
+def set_selected_char(button):
+    global selected_char_button
+    selected_char_button = button
+
+def start_game(level_matrix, selected_char_button):
     global x, y, monster_x, monster_y, level, can_shoot, lives, traktor, monsters, bullet, crystals_collected, current_monster, after_ids, move_monsters_interval, c1
     level = level_matrix
     # Начальное положение персонажей
@@ -44,9 +54,20 @@ def start_game(level_matrix):
     c1.pack(fill="both", expand=True)
     bg_image = PhotoImage(file='gg/земля фон.png')
     c1.create_image(0, 0, image=bg_image, anchor='nw')
-    image = Image.open('gg/трактор.png')
+
+    # Загрузка изображения игрового персонажа в зависимости от выбранного в меню pers()
+    if selected_char_button == pers1_But:
+        image = Image.open('gg/трактор.png')
+    elif selected_char_button == pers2_But:
+        image = Image.open('gg/КопательМ.png')
+    elif selected_char_button == pers3_But:
+        image = Image.open('gg/КопательЖ.png')
+    else:
+        image = Image.open('gg/трактор.png')
     image_tk = ImageTk.PhotoImage(image)
     c1.image = image_tk
+    traktor = c1.create_image(x * 100, y * 100, image=c1.image, anchor=NW, tags=("traktor"))
+
     monster_image = Image.open('gg/монстр1.png')
     monster_image_tk = ImageTk.PhotoImage(monster_image)
     c1.monster_image = monster_image_tk
@@ -277,7 +298,7 @@ def lavel1():
         ['0', '0', '0', '0', '2', '0', '0', '0', '2', '2', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0']
     ]
-    start_game(level_matrix)
+    start_game(level_matrix, selected_char_button)
     window.mainloop()
 
 def lavel2():
@@ -295,7 +316,7 @@ def lavel2():
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0']
     ]
-    start_game(level_matrix)
+    start_game(level_matrix, selected_char_button)
     window.mainloop()
 
 def lavel3():
@@ -313,7 +334,7 @@ def lavel3():
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0']
     ]
-    start_game(level_matrix)
+    start_game(level_matrix, selected_char_button)
     window.mainloop()
 
 def lavel(): #окно с выбором уровня игры
@@ -390,11 +411,12 @@ def pers(): #меню управления
     pers3 = pers3.resize((round(w * .1563), round(h * .25)))
     pers3w = ImageTk.PhotoImage(pers3)
 
-    pers1_But = Button(image=pers1tr)
-    pers1_But.place (relx=.3, rely=.6, anchor="c")
-    pers2_But = Button(image=pers2m)
+    global pers1_But, pers2_But, pers3_But
+    pers1_But = Button(command=lambda: set_selected_char(pers1_But), image=pers1tr)
+    pers1_But.place(relx=.3, rely=.6, anchor="c")
+    pers2_But = Button(command=lambda: set_selected_char(pers2_But), image=pers2m)
     pers2_But.place(relx=.5, rely=.6, anchor="c")
-    pers3_But = Button(image=pers3w)
+    pers3_But = Button(command=lambda: set_selected_char(pers3_But), image=pers3w)
     pers3_But.place(relx=.7, rely=.6, anchor="c")
 
     men1 = Image.open('gg/вернуться.png')
@@ -403,8 +425,6 @@ def pers(): #меню управления
     gl_menu = Button(command=cheta, image=(men))
     gl_menu.place(relx=.7, rely=.83, anchor="c")
     window.mainloop()
-
-
 
 def toggle_music(): #функция для включения/выключения музыки
     global music_playing, music_stream, button4
