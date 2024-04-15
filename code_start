@@ -1,9 +1,9 @@
 from tkinter import *
 import ctypes
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageOps
 import winsound
 
-ctypes.windll.shcore.SetProcessDpiAwareness(1) #сохранение размера окна для разных масштабов
+ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 def forget_menu(): #очищение окна
     for widget in window.winfo_children():
@@ -25,7 +25,7 @@ def set_selected_char(button):
     selected_char_button = button
 
 def start_game(level_matrix, selected_char_button):
-    global x, y, monster_x, monster_y, level, can_shoot, lives, traktor, monsters, bullet, crystals_collected, current_monster, after_ids, move_monsters_interval, c1
+    global x, y, monster_x, monster_y, level, can_shoot, lives, traktor, monsters, bullet, crystals_collected, current_monster, after_ids, c1
     level = level_matrix
     # Начальное положение персонажей
     initial_x, initial_y = 10, 5
@@ -46,8 +46,6 @@ def start_game(level_matrix, selected_char_button):
     # Направление движения
     dx, dy = 0, 0
 
-    # Интервал для move_monsters()
-    move_monsters_interval = 250
 
     window.attributes('-fullscreen', True)
     c1 = Canvas(window, width=1900, height=1200)
@@ -206,21 +204,10 @@ def start_game(level_matrix, selected_char_button):
             move_monster(current_monster)
             current_monster += 1
             if current_monster < 4:
-                after_id = window.after(600, spawn_monsters)
+                after_id = c1.after(600, spawn_monsters)
                 after_ids.append(after_id)
         except TclError:
-            pass  # Если окно было закрыто, просто выходим из функции
-
-    def move_monsters():
-        global monster_x, monster_y, x, y, lives, move_monsters_interval
-        try:
-            for i in range(4):
-                if monster_x[i] != -1 and monster_y[i] != -1:
-                    move_monster(i)  # Вызываем функцию move_monster() для каждого монстра
-                    draw_level()  # Обновляем положение монстров на экране
-            window.after(move_monsters_interval, move_monsters)  # Вызываем функцию через заданный интервал
-        except TclError:
-            pass  # Если окно было закрыто, просто выходим из функции
+            pass
 
     def move_monster(monster_index):
         global monster_x, monster_y, x, y, lives
@@ -238,15 +225,25 @@ def start_game(level_matrix, selected_char_button):
                 if next_x == x and next_y == y:
                     lives -= 1  # Уменьшаем количество жизней
                     if lives == 0:  # Если жизней не осталось
-                        lavel()  # Вызываем функцию lavel(), чтобы выйти в меню выбора уровня
+                        lavel()  # Завершаем игру
                     else:
+                        # Удаляем одно изображение сердца из матрицы
+                        for i in range(len(level)):
+                            for j in range(len(level[i])):
+                                if level[i][j] == '3':
+                                    level[i][j] = '0'
+                                    break
+
                         # Восстанавливаем начальные позиции персонажа и монстров
                         x, y = initial_x, initial_y
                         monster_x = initial_monster_x.copy()
                         monster_y = initial_monster_y.copy()
-                        draw_level()
+
+            draw_level()
+            delay = 200  # Задержка 250 миллисекунд для всех монстров
+            c1.after(delay, move_monster, monster_index)  # Вызываем move_monster() с задержкой
         except TclError:
-            pass  # Если окно было закрыто, просто выходим из функции
+            pass
 
     def find_shortest_path(start_x, start_y, target_x, target_y):
         queue = [(start_x, start_y, [])]  # Очередь с начальной координатой и пустым путем
@@ -281,7 +278,7 @@ def start_game(level_matrix, selected_char_button):
     window.bind('<Down>', move)
     window.bind('<Return>', shoot)
 
-    window.after(1000, move_monsters)
+    window.after(1000,  spawn_monsters)
     window.mainloop()
 def lavel1():
     level_matrix = [
