@@ -1,6 +1,6 @@
 from tkinter import *
 import ctypes
-from PIL import Image, ImageTk, ImageOps
+from PIL import Image, ImageTk
 import winsound
 
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
@@ -24,7 +24,7 @@ def set_selected_char(button):
     global selected_char_button
     selected_char_button = button
 
-def start_game(level_matrix, selected_char_button):
+def start_game(level_matrix, selected_char_button, monster_delay):
     global x, y, monster_x, monster_y, level, can_shoot, lives, traktor, monsters, bullet, crystals_collected, current_monster, after_ids, c1
     level = level_matrix
     # Начальное положение персонажей
@@ -46,8 +46,6 @@ def start_game(level_matrix, selected_char_button):
     # Направление движения
     dx, dy = 0, 0
 
-
-    window.attributes('-fullscreen', True)
     c1 = Canvas(window, width=1900, height=1200)
     c1.pack(fill="both", expand=True)
     bg_image = PhotoImage(file='gg/земля фон.png')
@@ -225,7 +223,7 @@ def start_game(level_matrix, selected_char_button):
                 if next_x == x and next_y == y:
                     lives -= 1  # Уменьшаем количество жизней
                     if lives == 0:  # Если жизней не осталось
-                        lavel()  # Завершаем игру
+                        game_over()  # Завершаем игру
                     else:
                         # Удаляем одно изображение сердца из матрицы
                         for i in range(len(level)):
@@ -240,8 +238,7 @@ def start_game(level_matrix, selected_char_button):
                         monster_y = initial_monster_y.copy()
 
             draw_level()
-            delay = 200  # Задержка 250 миллисекунд для всех монстров
-            c1.after(delay, move_monster, monster_index)  # Вызываем move_monster() с задержкой
+            c1.after(monster_delay, move_monster, monster_index)  # Вызываем move_monster() с задержкой
         except TclError:
             pass
 
@@ -295,7 +292,7 @@ def lavel1():
         ['0', '0', '0', '0', '2', '0', '0', '0', '2', '2', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0']
     ]
-    start_game(level_matrix, selected_char_button)
+    start_game(level_matrix, selected_char_button, monster_delay=200)
     window.mainloop()
 
 def lavel2():
@@ -313,9 +310,8 @@ def lavel2():
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0']
     ]
-    start_game(level_matrix, selected_char_button)
+    start_game(level_matrix, selected_char_button, monster_delay=160)
     window.mainloop()
-
 def lavel3():
     level_matrix = [
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
@@ -331,14 +327,33 @@ def lavel3():
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0']
     ]
-    start_game(level_matrix, selected_char_button)
+    start_game(level_matrix, selected_char_button, monster_delay=125)
+    window.mainloop()
+
+def game_over():
+    forget_menu()
+    bg_over= Image.open('gg/поражение фон.png')
+    bg_over = bg_over.resize((w, h))
+    over = ImageTk.PhotoImage(bg_over)
+    over = ImageTk.PhotoImage(bg_over)
+    label = Label(window, image=over)
+    label.place(relx=.5, rely=.5, anchor='c')
+
+    perez = Image.open('button/перезапуск.png')
+    perez = perez.resize((round(w*.2083), round(h*.3333)))
+    perez1 = ImageTk.PhotoImage(perez)
+    pere = Button(image=perez1)
+    pere.place(relx=.3, rely=.65, anchor="c")
+
+    verl = Image.open('button/вернутьсяУР.png')
+    verl = verl.resize((round(w*.2083), round(h*.3333)))
+    verl1 = ImageTk.PhotoImage(verl)
+    verll = Button(command=lavel, image=verl1)
+    verll.place(relx=.7, rely=.65, anchor="c")
     window.mainloop()
 
 def lavel(): #окно с выбором уровня игры
     forget_menu()
-    window.geometry("1920x1200")
-    window.attributes('-fullscreen', True)
-
     bg1 = Image.open('gg/фон уровни.png')
     bg1 = bg1.resize((w, h))
     bg = ImageTk.PhotoImage(bg1)
@@ -371,9 +386,6 @@ def lavel(): #окно с выбором уровня игры
     window.mainloop()
 
 def sit(): #меню управления
-    window.geometry("1920x1200")
-    window.title("DIGGER")
-    window.attributes('-fullscreen', True)
     bg1 = Image.open('gg/управление фон.png')
     bg1 = bg1.resize((w, h))
     bg = ImageTk.PhotoImage(bg1)
@@ -389,9 +401,6 @@ def sit(): #меню управления
 
 def pers(): #меню управления
     forget_menu()
-    window.geometry("1920x1200")
-    window.attributes('-fullscreen', True)
-
     bg1 = Image.open('gg/персонажи фон.png')
     bg1 = bg1.resize((w, h))
     bg = ImageTk.PhotoImage(bg1)
@@ -460,8 +469,6 @@ window = Tk()
 
 w = window.winfo_screenwidth()
 h = window.winfo_screenheight()
-
-window.geometry("1920x1200")
 window.title("DIGGER")
 window.attributes('-fullscreen', True)
 
