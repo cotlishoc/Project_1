@@ -24,8 +24,14 @@ def set_selected_char(button):
     global selected_char_button
     selected_char_button = button
 
-def start_game(level_matrix, selected_char_button, monster_delay):
-    global x, y, monster_x, monster_y, level, can_shoot, lives, traktor, monsters, bullet, crystals_collected, current_monster, after_ids, c1
+def start_game(level_matrix, selected_char_button, monster_delay, bg_image):
+    global x, y, monster_x, monster_y, level, can_shoot, lives, traktor, monsters, bullet, crystals_collected, current_monster, after_ids, c1, cell_size
+
+    # Calculate cell size based on screen resolution
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+    cell_size = min(screen_width // len(level_matrix[0]), screen_height // len(level_matrix))
+
     level = level_matrix
     # Начальное положение персонажей
     initial_x, initial_y = 10, 5
@@ -46,31 +52,38 @@ def start_game(level_matrix, selected_char_button, monster_delay):
     # Направление движения
     dx, dy = 0, 0
 
-    c1 = Canvas(window, width=1900, height=1200)
+    c1 = Canvas(window, width=screen_width, height=screen_height)
     c1.pack(fill="both", expand=True)
-    bg_image = PhotoImage(file='gg/земля фон.png')
     c1.create_image(0, 0, image=bg_image, anchor='nw')
 
     # Загрузка изображения игрового персонажа в зависимости от выбранного в меню pers()
     if selected_char_button == pers1_But:
-        image = Image.open('gg/трактор.png')
+        image_path = 'gg/трактор.png'
     elif selected_char_button == pers2_But:
-        image = Image.open('gg/КопательМ.png')
+        image_path = 'gg/КопательМ.png'
     elif selected_char_button == pers3_But:
-        image = Image.open('gg/КопательЖ.png')
+        image_path = 'gg/КопательЖ.png'
     else:
-        image = Image.open('gg/трактор.png')
+        image_path = 'gg/трактор.png'
+
+    image = Image.open(image_path)
+    image = image.resize((round(cell_size * 0.8), round(cell_size * 0.8)), Image.Resampling.LANCZOS)
     image_tk = ImageTk.PhotoImage(image)
     c1.image = image_tk
-    traktor = c1.create_image(x * 100, y * 100, image=c1.image, anchor=NW, tags=("traktor"))
+    traktor = c1.create_image(x * cell_size, y * cell_size, image=c1.image, anchor=NW, tags=("traktor"))
 
     monster_image = Image.open('gg/монстр1.png')
+    monster_image = monster_image.resize((round(cell_size * 0.8), round(cell_size * 0.8)), Image.Resampling.LANCZOS)
     monster_image_tk = ImageTk.PhotoImage(monster_image)
     c1.monster_image = monster_image_tk
+
     cristal = Image.open('gg/cristal.png')
+    cristal = cristal.resize((round(cell_size * 0.8), round(cell_size * 0.8)), Image.Resampling.LANCZOS)
     cristal_tk = ImageTk.PhotoImage(cristal)
     c1.cristal = cristal_tk
+
     heart_image = Image.open('gg/сердце.png')
+    heart_image = heart_image.resize((round(cell_size * 0.8), round(cell_size * 0.8)), Image.Resampling.LANCZOS)
     heart_image_tk = ImageTk.PhotoImage(heart_image)
     c1.heart_image = heart_image_tk
 
@@ -87,25 +100,25 @@ def start_game(level_matrix, selected_char_button, monster_delay):
             for i in range(len(level)):
                 for j in range(len(level[i])):
                     if level[i][j] == '1':
-                        c1.create_rectangle(j * 100, i * 100, j * 100 + 100, i * 100 + 100, fill='black',
+                        c1.create_rectangle(j * cell_size, i * cell_size, j * cell_size + cell_size, i * cell_size + cell_size, fill='black',
                                             tags='obstacle')
                     elif level[i][j] == '2':
-                        c1.create_image(j * 100, i * 100, image=c1.cristal, anchor=NW, tags='obstacle')
+                        c1.create_image(j * cell_size, i * cell_size, image=c1.cristal, anchor=NW, tags='obstacle')
 
             # Отрисовка оставшихся жизней (сердец)
             heart_row = 5
             heart_col = 18
             for i in range(lives):
-                c1.create_image(heart_col * 100, heart_row * 100, image=c1.heart_image, anchor=W, tags='obstacle')
+                c1.create_image(heart_col * cell_size, heart_row * cell_size, image=c1.heart_image, anchor=W, tags='obstacle')
                 heart_row -= 1
 
             if traktor is not None:
                 c1.delete(traktor)
-            traktor = c1.create_image(x * 100, y * 100, image=c1.image, anchor=NW, tags=("traktor"))
+            traktor = c1.create_image(x * cell_size, y * cell_size, image=c1.image, anchor=NW, tags=("traktor"))
             for i in range(4):
                 if monsters[i] is not None:
                     c1.delete(monsters[i])
-                monsters[i] = c1.create_image(monster_x[i] * 100, monster_y[i] * 100, image=c1.monster_image, anchor=NW,
+                monsters[i] = c1.create_image(monster_x[i] * cell_size, monster_y[i] * cell_size, image=c1.monster_image, anchor=NW,
                                               tags=("monster"))
             if bullet is not None:
                 c1.delete(bullet)
@@ -149,8 +162,7 @@ def start_game(level_matrix, selected_char_button, monster_delay):
         global bullet
         if bullet is not None and c1 is not None:
             c1.delete(bullet)
-        bullet = c1.create_oval(bullet_x * 100 + 40, bullet_y * 100 + 40, bullet_x * 100 + 60, bullet_y * 100 + 60,
-                                fill='red', tags='bullet')
+        bullet = c1.create_oval(bullet_x * cell_size + cell_size // 2, bullet_y * cell_size + cell_size // 2,bullet_x * cell_size + cell_size // 2 + cell_size // 4, bullet_y * cell_size + cell_size // 2 + cell_size // 4, fill='red', tags='bullet')
 
     def move_bullet(bullet_x, bullet_y, dx, dy):
         global bullet, monsters, level, after_ids
@@ -292,7 +304,13 @@ def lavel1():
         ['0', '0', '0', '0', '2', '0', '0', '0', '2', '2', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0']
     ]
-    start_game(level_matrix, selected_char_button, monster_delay=200)
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+
+    bg_image = Image.open('gg/земля фон.png')
+    bg_image = bg_image.resize((screen_width, screen_height), Image.Resampling.LANCZOS)
+    bg_image_tk = ImageTk.PhotoImage(bg_image)
+    start_game(level_matrix, selected_char_button, monster_delay=190, bg_image=bg_image_tk)
     window.mainloop()
 
 def lavel2():
@@ -310,7 +328,13 @@ def lavel2():
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0']
     ]
-    start_game(level_matrix, selected_char_button, monster_delay=160)
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+
+    bg_image = Image.open('gg/земля фон 2.png')
+    bg_image = bg_image.resize((screen_width, screen_height), Image.Resampling.LANCZOS)
+    bg_image_tk = ImageTk.PhotoImage(bg_image)
+    start_game(level_matrix, selected_char_button, monster_delay=150, bg_image=bg_image_tk)
     window.mainloop()
 def lavel3():
     level_matrix = [
@@ -327,7 +351,13 @@ def lavel3():
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0']
     ]
-    start_game(level_matrix, selected_char_button, monster_delay=125)
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+
+    bg_image = Image.open('gg/земля фон 3.png')
+    bg_image = bg_image.resize((screen_width, screen_height), Image.Resampling.LANCZOS)
+    bg_image_tk = ImageTk.PhotoImage(bg_image)
+    start_game(level_matrix, selected_char_button, monster_delay=115, bg_image=bg_image_tk)
     window.mainloop()
 
 def game_over():
