@@ -20,6 +20,8 @@ pers1_But = None
 pers2_But = None
 pers3_But = None
 
+current_level_func = None
+
 def set_selected_char(button):
     global selected_char_button
     selected_char_button = button
@@ -235,7 +237,7 @@ def start_game(level_matrix, selected_char_button, monster_delay, bg_image):
                 if next_x == x and next_y == y:
                     lives -= 1  # Уменьшаем количество жизней
                     if lives == 0:  # Если жизней не осталось
-                        game_over()  # Завершаем игру
+                        game_over(current_level_func)  # Завершаем игру
                     else:
                         # Удаляем одно изображение сердца из матрицы
                         for i in range(len(level)):
@@ -290,6 +292,8 @@ def start_game(level_matrix, selected_char_button, monster_delay, bg_image):
     window.after(1000,  spawn_monsters)
     window.mainloop()
 def lavel1():
+    global current_level_func
+    current_level_func = lavel1
     level_matrix = [
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '1', '1', '0'],
@@ -314,6 +318,8 @@ def lavel1():
     window.mainloop()
 
 def lavel2():
+    global current_level_func
+    current_level_func = lavel2
     level_matrix = [
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
         ['0', '0', '0', '0', '0', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '0'],
@@ -337,6 +343,8 @@ def lavel2():
     start_game(level_matrix, selected_char_button, monster_delay=150, bg_image=bg_image_tk)
     window.mainloop()
 def lavel3():
+    global current_level_func
+    current_level_func = lavel3
     level_matrix = [
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
         ['0', '0', '0', '0', '0', '0', '2', '2', '0', '0', '1', '1', '1', '1', '1', '1', '1', '1', '0'],
@@ -360,11 +368,10 @@ def lavel3():
     start_game(level_matrix, selected_char_button, monster_delay=115, bg_image=bg_image_tk)
     window.mainloop()
 
-def game_over():
+def game_over(level_func):
     forget_menu()
-    bg_over= Image.open('gg/поражение фон.png')
+    bg_over = Image.open('gg/поражение фон.png')
     bg_over = bg_over.resize((w, h))
-    over = ImageTk.PhotoImage(bg_over)
     over = ImageTk.PhotoImage(bg_over)
     label = Label(window, image=over)
     label.place(relx=.5, rely=.5, anchor='c')
@@ -372,7 +379,7 @@ def game_over():
     perez = Image.open('button/перезапуск.png')
     perez = perez.resize((round(w*.2083), round(h*.3333)))
     perez1 = ImageTk.PhotoImage(perez)
-    pere = Button(image=perez1)
+    pere = Button(image=perez1, command=level_func)  # вызов функции уровня при нажатии на кнопку
     pere.place(relx=.3, rely=.65, anchor="c")
 
     verl = Image.open('button/вернутьсяУР.png')
