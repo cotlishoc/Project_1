@@ -69,23 +69,23 @@ def start_game(level_matrix, selected_char_button, monster_delay, bg_image):
         image_path = 'gg/трактор.png'
 
     image = Image.open(image_path)
-    image = image.resize((round(cell_size * 0.8), round(cell_size * 0.8)), Image.Resampling.LANCZOS)
+    image = image.resize((cell_size, cell_size), Image.Resampling.LANCZOS)
     image_tk = ImageTk.PhotoImage(image)
     c1.image = image_tk
     traktor = c1.create_image(x * cell_size, y * cell_size, image=c1.image, anchor=NW, tags=("traktor"))
 
     monster_image = Image.open('gg/монстр1.png')
-    monster_image = monster_image.resize((round(cell_size * 0.8), round(cell_size * 0.8)), Image.Resampling.LANCZOS)
+    monster_image = monster_image.resize((cell_size, cell_size), Image.Resampling.LANCZOS)
     monster_image_tk = ImageTk.PhotoImage(monster_image)
     c1.monster_image = monster_image_tk
 
     cristal = Image.open('gg/cristal.png')
-    cristal = cristal.resize((round(cell_size * 0.8), round(cell_size * 0.8)), Image.Resampling.LANCZOS)
+    cristal = cristal.resize((cell_size, cell_size), Image.Resampling.LANCZOS)
     cristal_tk = ImageTk.PhotoImage(cristal)
     c1.cristal = cristal_tk
 
     heart_image = Image.open('gg/сердце.png')
-    heart_image = heart_image.resize((round(cell_size * 0.8), round(cell_size * 0.8)), Image.Resampling.LANCZOS)
+    heart_image = heart_image.resize((cell_size, cell_size), Image.Resampling.LANCZOS)
     heart_image_tk = ImageTk.PhotoImage(heart_image)
     c1.heart_image = heart_image_tk
 
