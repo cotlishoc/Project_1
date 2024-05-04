@@ -1,3 +1,4 @@
+import tkinter
 from tkinter import *
 import ctypes
 from PIL import Image, ImageTk
@@ -5,21 +6,16 @@ import winsound
 
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
-def forget_menu(): #очищение окна
+def forget_menu():
     for widget in window.winfo_children():
         widget.destroy()
 
-def cheta(): #вызов функций, выход в главное меню из меню выбора уровней
+def cheta():
     forget_menu()
     menu_on_screen()
 
 selected_char_button = None
-
-global pers1_But, pers2_But, pers3_But
-pers1_But = None
-pers2_But = None
-pers3_But = None
-
+pers1_But = pers2_But = pers3_But = None
 current_level_func = None
 
 def set_selected_char(button):
@@ -28,10 +24,7 @@ def set_selected_char(button):
 
 def start_game(level_matrix, selected_char_button, monster_delay, bg_image):
     global x, y, monster_x, monster_y, level, can_shoot, lives, traktor, monsters, bullet, crystals_collected, current_monster, after_ids, c1, cell_size
-
-    # Calculate cell size based on screen resolution
-    screen_width = window.winfo_screenwidth()
-    screen_height = window.winfo_screenheight()
+    screen_width, screen_height = window.winfo_screenwidth(), window.winfo_screenheight()
     cell_size = min(screen_width // len(level_matrix[0]), screen_height // len(level_matrix))
 
     level = level_matrix
@@ -74,6 +67,7 @@ def start_game(level_matrix, selected_char_button, monster_delay, bg_image):
     c1.image = image_tk
     traktor = c1.create_image(x * cell_size, y * cell_size, image=c1.image, anchor=NW, tags=("traktor"))
 
+    # Загрузка изображения монстра
     monster_image = Image.open('gg/монстр1.png')
     monster_image = monster_image.resize((cell_size, cell_size), Image.Resampling.LANCZOS)
     monster_image_tk = ImageTk.PhotoImage(monster_image)
@@ -128,12 +122,37 @@ def start_game(level_matrix, selected_char_button, monster_delay, bg_image):
             pass  # Если окно было закрыто, просто выходим из функции
 
     def move(event):
-        global x, y, crystals_collected, dx, dy
+        global x, y, crystals_collected, dx, dy, level
         try:
             if event.keysym == 'Right' and x < len(level[0]) - 2:
                 dx, dy = 1, 0
+                if selected_char_button == pers1_But:
+                    image = Image.open('gg/трактор.png')
+                elif selected_char_button == pers2_But:
+                    image = Image.open('gg/КопательМ.png')
+                elif selected_char_button == pers3_But:
+                    image = Image.open('gg/КопательЖ.png')
+                else:
+                    image = Image.open('gg/трактор.png')
+                image = image.resize((cell_size, cell_size), Image.Resampling.LANCZOS)
+                image_tk = ImageTk.PhotoImage(image)
+                c1.image = image_tk
+                c1.itemconfig(traktor, image=c1.image)
             elif event.keysym == 'Left' and x > 1:
                 dx, dy = -1, 0
+                if selected_char_button == pers1_But:
+                    image = Image.open('gg/трактор.png')
+                elif selected_char_button == pers2_But:
+                    image = Image.open('gg/КопательМ.png')
+                elif selected_char_button == pers3_But:
+                    image = Image.open('gg/КопательЖ.png')
+                else:
+                    image = Image.open('gg/трактор.png')
+                image = image.resize((cell_size, cell_size), Image.Resampling.LANCZOS)
+                image = image.transpose(Image.FLIP_LEFT_RIGHT)
+                image_tk = ImageTk.PhotoImage(image)
+                c1.image = image_tk
+                c1.itemconfig(traktor, image=c1.image)
             elif event.keysym == 'Up' and y > 1:
                 dx, dy = 0, -1
             elif event.keysym == 'Down' and y < len(level) - 2:
@@ -251,6 +270,13 @@ def start_game(level_matrix, selected_char_button, monster_delay, bg_image):
                         monster_x = initial_monster_x.copy()
                         monster_y = initial_monster_y.copy()
 
+            monster_image = Image.open('gg/монстр1.png')
+            monster_image = monster_image.resize((cell_size, cell_size), Image.Resampling.LANCZOS)
+            if monster_x[monster_index] > x:
+                monster_image = monster_image.transpose(Image.FLIP_LEFT_RIGHT)
+            monster_image_tk = ImageTk.PhotoImage(monster_image)
+            c1.monster_image = monster_image_tk
+
             draw_level()
             c1.after(monster_delay, move_monster, monster_index)  # Вызываем move_monster() с задержкой
         except TclError:
@@ -308,13 +334,10 @@ def lavel1():
         ['0', '0', '0', '0', '2', '0', '0', '0', '2', '2', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0']
     ]
-    screen_width = window.winfo_screenwidth()
-    screen_height = window.winfo_screenheight()
-
-    bg_image = Image.open('gg/земля фон.png')
-    bg_image = bg_image.resize((screen_width, screen_height), Image.Resampling.LANCZOS)
-    bg_image_tk = ImageTk.PhotoImage(bg_image)
-    start_game(level_matrix, selected_char_button, monster_delay=190, bg_image=bg_image_tk)
+    screen_width, screen_height = window.winfo_screenwidth(), window.winfo_screenheight()
+    bg_image = ImageTk.PhotoImage(
+        Image.open('gg/земля фон.png').resize((screen_width, screen_height), Image.Resampling.LANCZOS))
+    start_game(level_matrix, selected_char_button, monster_delay=190, bg_image=bg_image)
     window.mainloop()
 
 def lavel2():
@@ -334,13 +357,10 @@ def lavel2():
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0']
     ]
-    screen_width = window.winfo_screenwidth()
-    screen_height = window.winfo_screenheight()
-
-    bg_image = Image.open('gg/земля фон 2.png')
-    bg_image = bg_image.resize((screen_width, screen_height), Image.Resampling.LANCZOS)
-    bg_image_tk = ImageTk.PhotoImage(bg_image)
-    start_game(level_matrix, selected_char_button, monster_delay=150, bg_image=bg_image_tk)
+    screen_width, screen_height = window.winfo_screenwidth(), window.winfo_screenheight()
+    bg_image = ImageTk.PhotoImage(
+        Image.open('gg/земля фон 2.png').resize((screen_width, screen_height), Image.Resampling.LANCZOS))
+    start_game(level_matrix, selected_char_button, monster_delay=150, bg_image=bg_image)
     window.mainloop()
 def lavel3():
     global current_level_func
@@ -359,100 +379,68 @@ def lavel3():
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
         ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0']
     ]
-    screen_width = window.winfo_screenwidth()
-    screen_height = window.winfo_screenheight()
-
-    bg_image = Image.open('gg/земля фон 3.png')
-    bg_image = bg_image.resize((screen_width, screen_height), Image.Resampling.LANCZOS)
-    bg_image_tk = ImageTk.PhotoImage(bg_image)
-    start_game(level_matrix, selected_char_button, monster_delay=115, bg_image=bg_image_tk)
+    screen_width, screen_height = window.winfo_screenwidth(), window.winfo_screenheight()
+    bg_image = ImageTk.PhotoImage(
+        Image.open('gg/земля фон 3.png').resize((screen_width, screen_height), Image.Resampling.LANCZOS))
+    start_game(level_matrix, selected_char_button, monster_delay=115, bg_image=bg_image)
     window.mainloop()
 
 def game_over(level_func):
     forget_menu()
-    bg_over = Image.open('gg/поражение фон.png')
-    bg_over = bg_over.resize((w, h))
-    over = ImageTk.PhotoImage(bg_over)
-    label = Label(window, image=over)
+    bg_over = ImageTk.PhotoImage(Image.open('gg/поражение фон.png').resize((w, h)))
+    label = Label(window, image=bg_over)
     label.place(relx=.5, rely=.5, anchor='c')
 
-    perez = Image.open('button/перезапуск.png')
-    perez = perez.resize((round(w*.2083), round(h*.3333)))
-    perez1 = ImageTk.PhotoImage(perez)
-    pere = Button(image=perez1, command=level_func)  # вызов функции уровня при нажатии на кнопку
+    perez = ImageTk.PhotoImage(Image.open('button/перезапуск.png').resize((round(w*.2083), round(h*.3333))))
+    pere = Button(image=perez, command=level_func)
     pere.place(relx=.3, rely=.65, anchor="c")
 
-    verl = Image.open('button/вернутьсяУР.png')
-    verl = verl.resize((round(w*.2083), round(h*.3333)))
-    verl1 = ImageTk.PhotoImage(verl)
-    verll = Button(command=lavel, image=verl1)
+    verl = ImageTk.PhotoImage(Image.open('button/вернутьсяУР.png').resize((round(w*.2083), round(h*.3333))))
+    verll = Button(command=lavel, image=verl)
     verll.place(relx=.7, rely=.65, anchor="c")
     window.mainloop()
-
 def lavel(): #окно с выбором уровня игры
     forget_menu()
-    bg1 = Image.open('gg/фон уровни.png')
-    bg1 = bg1.resize((w, h))
-    bg = ImageTk.PhotoImage(bg1)
-    label = Label(window, image=bg)
+    bg1 = ImageTk.PhotoImage(Image.open('gg/фон уровни.png').resize((w, h)))
+    label = Label(window, image=bg1)
     label.place(relx=.5, rely=.5, anchor='c')
 
-    lvl111 = Image.open('gg/l1.png')
-    lvl111 = lvl111.resize((round(w*.0786), round(h*.1258)))
-    lvl11 = ImageTk.PhotoImage(lvl111)
+    lvl11 = ImageTk.PhotoImage(Image.open('gg/l1.png').resize((round(w * .0786), round(h * .1258))))
     lvl1 = Button(command=lavel1, image=lvl11)
     lvl1.place(relx=.25, rely=.6, anchor="c")
 
-    lvl222 = Image.open('gg/l2.png')
-    lvl222 = lvl222.resize((round(w*.0786), round(h*.1258)))
-    lvl22 = ImageTk.PhotoImage(lvl222)
+    lvl22 = ImageTk.PhotoImage(Image.open('gg/l2.png').resize((round(w * .0786), round(h * .1258))))
     lvl2 = Button(command=lavel2, image=lvl22)
     lvl2.place(relx=.5, rely=.6, anchor="c")
 
-    lvl333 = Image.open('gg/l3.png')
-    lvl333 = lvl333.resize((round(w*.0786), round(h*.1258)))
-    lvl33 = ImageTk.PhotoImage(lvl333)
+    lvl33 = ImageTk.PhotoImage(Image.open('gg/l3.png').resize((round(w * .0786), round(h * .1258))))
     lvl3 = Button(command=lavel3, image=lvl33)
     lvl3.place(relx=.75, rely=.6, anchor="c")
 
-    men1 = Image.open('gg\вернуться.png')
-    men1 = men1.resize((round(w * .2443), round(h * .0917)))
-    men = ImageTk.PhotoImage(men1)
-    gl_menu = Button(command=cheta, image=(men))
+    men = ImageTk.PhotoImage(Image.open('gg\вернуться.png').resize((round(w * .2443), round(h * .0917))))
+    gl_menu = Button(command=cheta, image=men)
     gl_menu.place(relx=.67, rely=.83, anchor="c")
     window.mainloop()
 
 def sit(): #меню управления
-    bg1 = Image.open('gg/управление фон.png')
-    bg1 = bg1.resize((w, h))
-    bg = ImageTk.PhotoImage(bg1)
-    label = Label(window, image=bg)
+    bg1 = ImageTk.PhotoImage(Image.open('gg/управление фон.png').resize((w, h)))
+    label = Label(window, image=bg1)
     label.place(relx=.5, rely=.5, anchor='c')
 
-    men1 = Image.open('gg/вернуться.png')
-    men1 = men1.resize((round(w*.2443),round(h*.0917)))
-    men = ImageTk.PhotoImage(men1)
-    gl_menu = Button(command=cheta, image=(men))
+    men = ImageTk.PhotoImage(Image.open('gg/вернуться.png').resize((round(w * .2443), round(h * .0917))))
+    gl_menu = Button(command=cheta, image=men)
     gl_menu.place(relx=.70, rely=.83, anchor="c")
     window.mainloop()
 
 def pers(): #меню управления
     forget_menu()
-    bg1 = Image.open('gg/персонажи фон.png')
-    bg1 = bg1.resize((w, h))
-    bg = ImageTk.PhotoImage(bg1)
-    label = Label(window, image=bg)
+    bg1 = ImageTk.PhotoImage(Image.open('gg/персонажи фон.png').resize((w, h)))
+    label = Label(window, image=bg1)
     label.place(relx=.5, rely=.5, anchor='c')
 
-    pers1 = Image.open('Button/Pers1.png')
-    pers1 = pers1.resize((round(w * .1563), round(h * .25)))
-    pers1tr = ImageTk.PhotoImage(pers1)
-    pers2 = Image.open('Button/Pers2.png')
-    pers2 = pers2.resize((round(w * .1563), round(h * .25)))
-    pers2m = ImageTk.PhotoImage(pers2)
-    pers3 = Image.open('Button/Pers3.png')
-    pers3 = pers3.resize((round(w * .1563), round(h * .25)))
-    pers3w = ImageTk.PhotoImage(pers3)
+    pers1tr = ImageTk.PhotoImage(Image.open('Button/Pers1.png').resize((round(w * .1563), round(h * .25))))
+    pers2m = ImageTk.PhotoImage(Image.open('Button/Pers2.png').resize((round(w * .1563), round(h * .25))))
+    pers3w = ImageTk.PhotoImage(Image.open('Button/Pers3.png').resize((round(w * .1563), round(h * .25))))
 
     global pers1_But, pers2_But, pers3_But
     pers1_But = Button(command=lambda: set_selected_char(pers1_But), image=pers1tr)
@@ -462,84 +450,66 @@ def pers(): #меню управления
     pers3_But = Button(command=lambda: set_selected_char(pers3_But), image=pers3w)
     pers3_But.place(relx=.7, rely=.6, anchor="c")
 
-    men1 = Image.open('gg/вернуться.png')
-    men1 = men1.resize((round(w * .2443), round(h * .0917)))
-    men = ImageTk.PhotoImage(men1)
-    gl_menu = Button(command=cheta, image=(men))
+    men = ImageTk.PhotoImage(Image.open('gg/вернуться.png').resize((round(w * .2443), round(h * .0917))))
+    gl_menu = Button(command=cheta, image=men)
     gl_menu.place(relx=.7, rely=.83, anchor="c")
     window.mainloop()
 
-def toggle_music(): #функция для включения/выключения музыки
-    global music_playing, music_stream, button4
-    if music_playing:
+
+def toggle_music(button): #функция для включения/выключения музыки
+    global music_playing
+    if music_playing.get():
         winsound.PlaySound(None, winsound.SND_PURGE)
-        button4.config(image=sound_off)
-        music_playing = False
+        button.config(image=sound_off)
+        music_playing.set(False)
     else:
-        music_stream = winsound.PlaySound("gg/Garoad.wav", winsound.SND_ASYNC | winsound.SND_LOOP)
-        button4.config(image=sound_on)
-        music_playing = True
+        winsound.PlaySound("gg/Garoad.wav", winsound.SND_ASYNC | winsound.SND_LOOP)
+        button.config(image=sound_on)
+        music_playing.set(True)
+
 
 def menu_on_screen(): #главное меню
     global button4
-    bg1 = Image.open('gg/фон меню.png')
-    bg1 = bg1.resize((w, h))
-    bg = ImageTk.PhotoImage(bg1)
+    forget_menu()
+    bg = ImageTk.PhotoImage(Image.open('gg/фон меню.png').resize((w, h)))
     label = Label(window, image=bg)
     label.place(relx=.5, rely=.5, anchor='c')
 
+    ex = ImageTk.PhotoImage(Image.open('gg/выход.png').resize((round(w * .2479), round(h * .0633))))
     button1 = Button(command=window.destroy, image=ex)
     button1.place(relx=.5, rely=.85, anchor="c")
+
+    yp = ImageTk.PhotoImage(Image.open('gg/управление.png').resize((round(w * .2479), round(h * .0633))))
     button2 = Button(command=sit, image=yp)
     button2.place(relx=.5, rely=.75, anchor="c")
-    button3 = Button(command=pers,image=per)
+
+    per = ImageTk.PhotoImage(Image.open('gg/выбор персонажа.png').resize((round(w * .2479), round(h * .0633))))
+    button3 = Button(command=pers, image=per)
     button3.place(relx=.5, rely=.65, anchor="c")
-    button4 = Button(command=toggle_music, image=sound_off)
+
+    button4 = Button(command=lambda: toggle_music(button4))
     button4.place(relx=.85, rely=.85, anchor="c")
+
+    pl = ImageTk.PhotoImage(Image.open('gg/Играть.png').resize((round(w * .2479), round(h * .0633))))
     button5 = Button(command=lavel, image=pl)
     button5.place(relx=.5, rely=.55, anchor="c")
 
+    if music_playing.get():
+        button4.config(image=sound_on)
+    else:
+        button4.config(image=sound_off)
+
     window.mainloop()
 
-
 window = Tk()
-
-w = window.winfo_screenwidth()
-h = window.winfo_screenheight()
+w, h = window.winfo_screenwidth(), window.winfo_screenheight()
 window.title("DIGGER")
 window.attributes('-fullscreen', True)
 
-#фон
-bg1 = Image.open('gg\фон меню.png')
-bg1 = bg1.resize((w, h))
-bg = ImageTk.PhotoImage(bg1)
-label = Label(window, image=bg)
-label.place(relx=.5, rely=.5, anchor='c')
+sound_on = ImageTk.PhotoImage(Image.open('gg/song_on.png').resize((round(w * .0396), round(h * .0633))))
+sound_off = ImageTk.PhotoImage(Image.open('gg/song_off.png').resize((round(w * .0396), round(h * .0633))))
 
-#музыка
-sound_on1 = Image.open ('gg/song_on.png')
-sound_on1 = sound_on1.resize((round(w * .0396), round(h * .0633)))
-sound_on = ImageTk.PhotoImage(sound_on1)
-sound_off1 = Image.open ('gg/song_off.png')
-sound_off1 = sound_off1.resize((round(w * .0396), round(h * .0633)))
-sound_off = ImageTk.PhotoImage(sound_off1)
-
-#кнопки
-pl1 = Image.open('gg/Играть.png')
-pl1 = pl1.resize((round(w * .2479), round(h * .0633)))
-pl = ImageTk.PhotoImage(pl1)
-ex1 = Image.open('gg/выход.png')
-ex1 = ex1.resize((round(w * .2479), round(h * .0633)))
-ex = ImageTk.PhotoImage(ex1)
-yp1 = Image.open('gg/управление.png')
-yp1 = yp1.resize((round(w * .2479), round(h * .0633)))
-yp = ImageTk.PhotoImage(yp1)
-per1 = Image.open('gg/выбор персонажа.png')
-per1 = per1.resize((round(w * .2479), round(h * .0633)))
-per = ImageTk.PhotoImage(per1)
-
-music_playing = False
-music_stream = None
-button4 = None  # Объявляем button4 как глобальную переменную
+music_playing = BooleanVar()
+music_playing.set(False)
 
 menu_on_screen()
