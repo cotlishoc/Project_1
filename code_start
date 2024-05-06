@@ -67,7 +67,6 @@ def start_game(level_matrix, selected_char_button, monster_delay, bg_image):
     c1.image = image_tk
     traktor = c1.create_image(x * cell_size, y * cell_size, image=c1.image, anchor=NW, tags=("traktor"))
 
-    # Загрузка изображения монстра
     monster_image = Image.open('gg/монстр1.png')
     monster_image = monster_image.resize((cell_size, cell_size), Image.Resampling.LANCZOS)
     monster_image_tk = ImageTk.PhotoImage(monster_image)
@@ -269,13 +268,6 @@ def start_game(level_matrix, selected_char_button, monster_delay, bg_image):
                         x, y = initial_x, initial_y
                         monster_x = initial_monster_x.copy()
                         monster_y = initial_monster_y.copy()
-
-            monster_image = Image.open('gg/монстр1.png')
-            monster_image = monster_image.resize((cell_size, cell_size), Image.Resampling.LANCZOS)
-            if monster_x[monster_index] > x:
-                monster_image = monster_image.transpose(Image.FLIP_LEFT_RIGHT)
-            monster_image_tk = ImageTk.PhotoImage(monster_image)
-            c1.monster_image = monster_image_tk
 
             draw_level()
             c1.after(monster_delay, move_monster, monster_index)  # Вызываем move_monster() с задержкой
